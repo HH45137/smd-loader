@@ -137,6 +137,7 @@ private:
             {
             case HEADER:
                 load_version(line);
+                state = BONE;
                 continue;
             case BONE:
                 load_bones(line);
@@ -157,7 +158,15 @@ private:
 
     void load_version(std::string line)
     {
-        this->version = 0;
+        try
+        {
+            auto items = cut_to_items(line, " ");
+            this->version = std::stoi(items[1]);
+        }
+        catch (std::exception& e)
+        {
+            std::cerr << e.what();
+        }
     }
 
     void load_trangles(std::string line)
@@ -172,11 +181,38 @@ private:
     {
     }
 
-    std::vector<std::string> cut_to_items(const std::string& line, const char separator)
+    // Function to split a string into substrings based on a given delimiter.
+    // This function ignores empty substrings that may result from consecutive delimiters.
+    std::vector<std::string> cut_to_items(const std::string& line, const std::string& delimiter)
     {
-        std::vector<std::string> result;
+        std::vector<std::string> items;
+        std::string token;
+        std::size_t start = 0;
+        std::size_t end = 0;
 
-        return result;
+        // Loop through the string and find the position of the delimiter to split the string
+        while ((end = line.find(delimiter, start)) != std::string::npos)
+        {
+            token = line.substr(start, end - start);
+            if (!token.empty())
+            {
+                // Ignore empty tokens (substrings) that might occur due to consecutive delimiters
+                items.push_back(token);
+            }
+            start = end + delimiter.length();
+        }
+
+        // Add the last substring if it exists (after the last delimiter)
+        if (start < line.length())
+        {
+            token = line.substr(start);
+            if (!token.empty())
+            {
+                items.push_back(token);
+            }
+        }
+
+        return items;
     }
 
     smd_load_state_e get_load_state(const std::string& line)
